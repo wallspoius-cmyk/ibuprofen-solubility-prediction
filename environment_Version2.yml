@@ -1,0 +1,14 @@
+name: mol-ml
+channels:
+  - conda-forge
+dependencies:
+  - python=3.8
+  - rdkit
+  - pandas
+  - scikit-learn
+  - numpy
+  - matplotlib
+  - joblib
+  - pip
+  - pip:
+    - deepchem

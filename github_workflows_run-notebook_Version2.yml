@@ -1,0 +1,44 @@
+name: Execute and commit notebook
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  run-notebook:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Miniconda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-activate-base: false
+          python-version: "3.8"
+
+      - name: Create conda env from environment.yml
+        shell: bash -l {0}
+        run: |
+          # Create or update the environment
+          conda env create -f environment.yml -n mol-ml || conda env update -f environment.yml -n mol-ml
+          source "$(conda info --base)/etc/profile.d/conda.sh"
+          conda activate mol-ml
+          pip install --upgrade pip
+          pip install papermill nbconvert
+
+      - name: Execute notebook with papermill
+        shell: bash -l {0}
+        run: |
+          source "$(conda info --base)/etc/profile.d/conda.sh"
+          conda activate mol-ml
+          papermill ibuprofen_solubility_prediction.ipynb executed.ipynb -k python3
+
+      - name: Commit executed notebook
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add executed.ipynb
+          git commit -m "Add executed notebook" || echo "No changes to commit"
+          git push
